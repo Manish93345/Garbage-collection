@@ -1,13 +1,21 @@
+
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
-from pathlib import Path
+from huggingface_hub import hf_hub_download
 
 
-# Project paths
-BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "models" / "garbage_classifier_final.pth"
+# Hugging Face model repository
+REPO_ID = "Manish85211/sorted-garbage-classifier"
+MODEL_FILENAME = "garbage_classifier_final.pth"
+
+
+# Download model (downloads once and uses local cache afterwards)
+MODEL_PATH = hf_hub_download(
+    repo_id=REPO_ID,
+    filename=MODEL_FILENAME
+)
 
 
 # Device configuration

@@ -5,6 +5,7 @@ SORTED is a computer-vision-based web application that classifies waste images i
 ## Project Overview
 
 The application accepts a waste image through file upload or camera capture, runs the trained image-classification model, and displays the predicted material category with a confidence score.
+- dataset link: `https://github.com/garythung/trashnet/`
 
 Users can also provide feedback on predictions:
 - **Correct:** saves the image under the predicted class in the correct-feedback collection.
@@ -110,8 +111,8 @@ cd Garbage-collection
 Windows PowerShell:
 
 ```powershell
-python -m venv lisajaanu
-.\lisajaanu\Scripts\Activate.ps1
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
 ### 3. Install dependencies
