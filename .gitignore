@@ -1,1 +1,24 @@
-/dataset/raw
+@"
+# Dataset
+dataset/
+
+# Model checkpoints
+models/*.pth
+models/*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+
+# Temporary files
+*.log
+.DS_Store
+"@ | Set-Content .gitignore
