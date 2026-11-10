@@ -1,11 +1,18 @@
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 
 from backend.model_loader import predict_image
 
-app = Flask(__name__)
+
+app = Flask(
+    __name__,
+    template_folder="../frontend",
+    static_folder="../frontend/static",
+    static_url_path="/static"
+)
+
 
 # Maximum upload size: 5 MB
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
@@ -13,10 +20,7 @@ app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({
-        "message": "Garbage Classification API is running!",
-        "classes": ["glass", "metal", "paper", "plastic"]
-    })
+    return render_template("index.html")
 
 
 @app.route("/predict", methods=["POST"])

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="SORTED. An intelligent waste classification platform for identifying glass, metal, paper and plastic waste.">
+
+    <title>SORTED. — Waste Classification</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <header class="navbar">
+        <a href="#" class="brand">
+            <span class="brand-mark">S.</span>
+            <span>SORTED.</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#how-it-works">How it works</a>
+            <a href="#classifier">Classifier</a>
+        </nav>
+
+        <a href="#classifier" class="nav-button">
+            Try the classifier
+            <span>↗</span>
+        </a>
+    </header>
+
+
+    <main>
+
+        <!-- Hero Section -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div class="eyebrow">
+                    <span class="status-dot"></span>
+                    INTELLIGENT WASTE CLASSIFICATION
+                </div>
+
+                <h1>
+                    Waste less.<br>
+                    <span>Sort better.</span>
+                </h1>
+
+                <p class="hero-description">
+                    A simple step towards responsible waste management.
+                    Upload an image and let our machine learning model
+                    identify the material.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#classifier" class="primary-button">
+                        Start classifying
+                        <span>↗</span>
+                    </a>
+
+                    <a href="#how-it-works" class="text-button">
+                        How it works
+                        <span>↓</span>
+                    </a>
+                </div>
+
+                <div class="hero-meta">
+                    <span>01 / UPLOAD</span>
+                    <span>02 / ANALYZE</span>
+                    <span>03 / IDENTIFY</span>
+                </div>
+
+            </div>
+
+
+            <div class="hero-visual">
+
+                <div class="visual-top">
+                    <span>THE MATERIAL INDEX</span>
+                    <span>EST. 2026</span>
+                </div>
+
+                <div class="material-grid">
+
+                    <div class="material-card glass-card">
+                        <span class="material-number">01</span>
+                        <div class="material-icon">◈</div>
+                        <span class="material-name">Glass</span>
+                    </div>
+
+                    <div class="material-card metal-card">
+                        <span class="material-number">02</span>
+                        <div class="material-icon">▤</div>
+                        <span class="material-name">Metal</span>
+                    </div>
+
+                    <div class="material-card paper-card">
+                        <span class="material-number">03</span>
+                        <div class="material-icon">▧</div>
+                        <span class="material-name">Paper</span>
+                    </div>
+
+                    <div class="material-card plastic-card">
+                        <span class="material-number">04</span>
+                        <div class="material-icon">♧</div>
+                        <span class="material-name">Plastic</span>
+                    </div>
+
+                </div>
+
+                <div class="visual-bottom">
+                    <span>FOUR MATERIAL CATEGORIES</span>
+                    <span>BUILT WITH COMPUTER VISION</span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Classifier Section -->
+
+        <section class="classifier-section" id="classifier">
+
+            <div class="section-heading">
+
+                <div>
+                    <div class="eyebrow">THE CLASSIFICATION TOOL</div>
+
+                    <h2>Identify your waste.</h2>
+
+                    <p>
+                        Upload a clear image of a waste item.
+                        Our model will identify its material category.
+                    </p>
+                </div>
+
+                <span class="section-index">01 — 02</span>
+
+            </div>
+
+
+            <div class="classifier-layout">
+
+                <!-- Upload Panel -->
+
+                <div class="upload-panel">
+
+                    <div class="panel-heading">
+                        <span>01 / IMAGE INPUT</span>
+                        <span class="file-limit">MAX 5 MB</span>
+                    </div>
+
+
+                    <div class="input-tabs">
+                        <button type="button" class="input-tab active" id="upload-tab">
+                            Upload Image
+                        </button>
+
+                        <button type="button" class="input-tab" id="camera-tab">
+                            Use Camera
+                        </button>
+                    </div>
+
+
+
+                    <div class="upload-area" id="drop-area">
+
+                        <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" hidden>
+
+                        <div id="upload-placeholder">
+
+                            <div class="upload-icon">↑</div>
+
+                            <h3>Drop your image here</h3>
+
+                            <p>or browse files from your device</p>
+
+                            <button type="button" class="browse-button" id="browse-button">
+                                Browse image
+                            </button>
+
+                            <span class="supported-formats">
+                                JPG, PNG, WEBP
+                            </span>
+
+                        </div>
+
+
+                        <div class="preview-container hidden" id="preview-container">
+
+                            <img id="image-preview" alt="Selected waste image">
+
+                            <button type="button" id="remove-image" class="remove-button" aria-label="Remove image">
+                                ×
+                            </button>
+
+                            <span class="preview-label">
+                                IMAGE READY FOR ANALYSIS
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+<!-- Camera Panel -->
+
+<div class="camera-panel hidden" id="camera-panel">
+
+    <div class="camera-preview">
+
+        <video id="camera-video" autoplay playsinline muted></video>
+
+        <div class="camera-placeholder" id="camera-placeholder">
+            <span>◉</span>
+            <p>Your camera preview will appear here.</p>
+        </div>
+
+        <canvas id="camera-canvas" hidden></canvas>
+
+    </div>
+
+    <div class="camera-controls">
+
+        <button type="button" class="camera-button" id="start-camera">
+            Start Camera
+        </button>
+
+        <button type="button" class="camera-button capture-button"
+                id="capture-camera" disabled>
+            Capture Image
+        </button>
+
+        <button type="button" class="camera-button secondary-button"
+                id="retake-camera" disabled>
+            Retake
+        </button>
+
+        <button type="button" class="camera-button secondary-button"
+                id="stop-camera" disabled>
+            Stop Camera
+        </button>
+
+    </div>
+
+    <p class="camera-note" id="camera-note">
+        Allow camera access when your browser asks for permission.
+    </p>
+
+</div>
+
+
+
+                    <button type="button" class="analyze-button" id="analyze-button" disabled>
+                        <span id="analyze-text">Analyze image</span>
+                        <span>→</span>
+                    </button>
+
+                    <p class="upload-note" id="upload-note">
+                        Your image is processed for classification.
+                    </p>
+
+                </div>
+
+
+                <!-- Result Panel -->
+
+                <div class="result-panel">
+
+                    <div class="panel-heading">
+                        <span>02 / CLASSIFICATION RESULT</span>
+                        <span class="result-status" id="result-status">
+                            AWAITING INPUT
+                        </span>
+                    </div>
+
+
+                    <div class="result-content" id="result-content">
+
+                        <div class="empty-result">
+
+                            <div class="result-placeholder-icon">
+                                ◌
+                            </div>
+
+                            <h3>Your result will appear here.</h3>
+
+                            <p>
+                                Upload an image to discover its
+                                material category.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-footer">
+                        <span>MODEL: EFFICIENTNET-B0</span>
+                        <span>4 MATERIAL CLASSES</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- How It Works -->
+
+        <section class="how-section" id="how-it-works">
+
+            <div class="section-heading">
+
+                <div>
+                    <div class="eyebrow">THE PROCESS</div>
+                    <h2>Simple by design.</h2>
+                    <p>
+                        Three steps from an image to an informed
+                        classification.
+                    </p>
+                </div>
+
+                <span class="section-index">02 — 02</span>
+
+            </div>
+
+
+            <div class="steps-grid">
+
+                <article class="step-card">
+                    <span class="step-number">01</span>
+                    <div class="step-icon">↥</div>
+                    <h3>Upload</h3>
+                    <p>
+                        Select an image of the waste item
+                        you want to classify.
+                    </p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">02</span>
+                    <div class="step-icon">⌘</div>
+                    <h3>Analyze</h3>
+                    <p>
+                        Our trained computer vision model
+                        examines the image.
+                    </p>
+                </article>
+
+                <article class="step-card">
+                    <span class="step-number">03</span>
+                    <div class="step-icon">✓</div>
+                    <h3>Identify</h3>
+                    <p>
+                        Receive a predicted material category
+                        with its confidence score.
+                    </p>
+                </article>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <a href="#" class="brand">
+            <span class="brand-mark">S.</span>
+            <span>SORTED.</span>
+        </a>
+
+        <p>
+            Built for a cleaner tomorrow.
+        </p>
+
+        <span class="footer-copy">
+            © 2026 SORTED. ALL RIGHTS RESERVED.
+        </span>
+
+    </footer>
+
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="/static/script.js"></script>
+
+</body>
+
+</html>
