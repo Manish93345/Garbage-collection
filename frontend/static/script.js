@@ -22,6 +22,8 @@ const toast = document.getElementById("toast");
 let selectedFile = null;
 let previewUrl = null;
 let toastTimer = null;
+let latestPrediction = null;
+let feedbackSubmitting = false;
 
 
 // -----------------------------
@@ -210,6 +212,7 @@ removeButton.addEventListener("click", removeImage);
 
 function resetResult() {
 
+    latestPrediction = null;
     resultStatus.textContent = "AWAITING INPUT";
 
     resultContent.innerHTML = `
@@ -254,6 +257,7 @@ function setLoading(isLoading) {
 function displayResult(data) {
 
     const category = data.prediction;
+    latestPrediction = { prediction: category, confidence: Number(data.confidence) };
     const confidence = Number(data.confidence);
 
     const safeCategory = escapeHTML(category);
@@ -297,11 +301,86 @@ function displayResult(data) {
                 material composition or recyclability.
             </div>
 
+
+            <div class="feedback-section" id="feedback-section">
+                <p class="feedback-question">Was this prediction correct?</p>
+                <div class="feedback-actions">
+                    <button type="button" class="feedback-button" id="feedback-correct">👍 Correct</button>
+                    <button type="button" class="feedback-button" id="feedback-incorrect">👎 Incorrect</button>
+                </div>
+                <div class="feedback-correction hidden" id="feedback-correction">
+                    <label for="actual-class">What is the actual material?</label>
+                    <select id="actual-class">
+                        <option value="">Select actual category</option>
+                        <option value="glass">Glass</option>
+                        <option value="metal">Metal</option>
+                        <option value="paper">Paper</option>
+                        <option value="plastic">Plastic</option>
+                    </select>
+                    <button type="button" class="feedback-submit" id="submit-incorrect">Submit feedback</button>
+                </div>
+                <p class="feedback-message" id="feedback-message" role="status"></p>
+            </div>
+
         </div>
     `;
 
 }
 
+
+
+// -----------------------------
+// Classification feedback
+// -----------------------------
+resultContent.addEventListener("click", async (event) => {
+    if (event.target.closest("#feedback-correct")) {
+        await submitFeedback("correct");
+    } else if (event.target.closest("#feedback-incorrect")) {
+        document.getElementById("feedback-correction").classList.remove("hidden");
+        document.getElementById("feedback-incorrect").disabled = true;
+    } else if (event.target.closest("#submit-incorrect")) {
+        const actual = document.getElementById("actual-class").value;
+        if (!actual) {
+            showToast("Please select the actual material category.");
+            return;
+        }
+        await submitFeedback("incorrect", actual);
+    }
+});
+
+async function submitFeedback(type, actual = "") {
+    if (!selectedFile || !latestPrediction || feedbackSubmitting) {
+        showToast("Please analyze an image before submitting feedback.");
+        return;
+    }
+
+    feedbackSubmitting = true;
+    const message = document.getElementById("feedback-message");
+    const buttons = resultContent.querySelectorAll(".feedback-button, .feedback-submit");
+    buttons.forEach(button => button.disabled = true);
+    message.textContent = "Saving your feedback...";
+
+    const formData = new FormData();
+    formData.append("image", selectedFile, selectedFile.name || "classification.jpg");
+    formData.append("predicted_class", latestPrediction.prediction);
+    formData.append("confidence", String(latestPrediction.confidence));
+    formData.append("feedback", type);
+    if (type === "incorrect") formData.append("actual_class", actual);
+
+    try {
+        const response = await fetch("/feedback", { method: "POST", body: formData });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || "Unable to save feedback.");
+        document.getElementById("feedback-section").innerHTML =
+            `<p class="feedback-thanks">${escapeHTML(data.message)}</p>`;
+    } catch (error) {
+        console.error("Feedback error:", error);
+        message.textContent = error.message || "Unable to save feedback.";
+        buttons.forEach(button => button.disabled = false);
+    } finally {
+        feedbackSubmitting = false;
+    }
+}
 
 // -----------------------------
 // Safe text rendering

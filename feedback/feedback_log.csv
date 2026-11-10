@@ -1,0 +1,4 @@
+timestamp_utc,feedback,predicted_class,actual_class,confidence_percent,image_path
+2026-11-10T13:50:54.527364+00:00,correct,plastic,plastic,96.19,correct\plastic\12c8f810ddf449b6b98c402d5f4740c1.jpg
+2026-11-10T13:51:41.964585+00:00,correct,plastic,plastic,51.72,correct\plastic\e75d9a0d7bd248ae87650435ab5f2957.jpg
+2026-11-10T13:52:35.646330+00:00,incorrect,glass,metal,88.28,incorrect\predicted_glass\actual_metal\ebc6b428bbbe4f328f0e44842d493758.jpg
