@@ -1,11 +1,14 @@
-# Dataset files
+# Dataset and generated data
 dataset/
 data/
 
-# Model weights and checkpoints
+# Model artifacts and checkpoints
 models/*.pth
 models/*.pt
 checkpoints/
+
+# Local feedback records and uploaded images
+feedback/
 
 # Python environments and caches
 .venv/
@@ -21,6 +24,6 @@ __pycache__/
 .env
 .env.*
 
-# Generated logs and temporary files
+# Logs and temporary files
 *.log
 .DS_Store
