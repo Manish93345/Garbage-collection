@@ -1,103 +1,123 @@
 # SORTED — Garbage Classification for Waste Management
 
-SORTED is a computer-vision-based web application that classifies waste images into four material categories: **Glass, Metal, Paper, and Plastic**. It uses a fine-tuned EfficientNet-B0 model with a Flask backend and a browser-based interface.
+SORTED is a computer-vision project that classifies an image of a waste item into one of four material categories: **glass, metal, paper, or plastic**. It uses transfer learning with an ImageNet-pretrained **EfficientNet-B0** model implemented in PyTorch.
 
-## Project Overview
+The project covers dataset exploration, model training and evaluation, a local Flask application, and hosted inference through a Gradio application on Hugging Face Spaces.
 
-The application accepts a waste image through file upload or camera capture, runs the trained image-classification model, and displays the predicted material category with a confidence score.
-- dataset link: `https://github.com/garythung/trashnet/`
+## Project links
 
-Users can also provide feedback on predictions:
-- **Correct:** saves the image under the predicted class in the correct-feedback collection.
-- **Incorrect:** asks the user to select the actual class and saves the image with both predicted and actual labels.
-- **No feedback:** does not save the analyzed image.
+| Resource | Link |
+|---|---|
+| Source code | [GitHub repository](https://github.com/Manish93345/Garbage-collection) |
+| Live application | [SORTED on Hugging Face Spaces](https://huggingface.co/spaces/Manish85211/sorted-garbage-classifier) |
+| Trained model checkpoint | [Hugging Face model repository](https://huggingface.co/Manish85211/sorted-garbage-classifier) |
+| Dataset | [TrashNet](https://github.com/garythung/trashnet) |
 
-Feedback metadata is recorded in `feedback/feedback_log.csv`.
+The model checkpoint is hosted separately from the application source. The local Flask model loader downloads the checkpoint from the Hugging Face model repository with `huggingface_hub`. The public Space uses Gradio and ZeroGPU for hosted inference.
 
-## Supported Categories
+## Problem and scope
 
-- Glass
-- Metal
-- Paper
-- Plastic
+Given one image containing one waste item, SORTED predicts one of four supported material classes and returns a confidence score.
 
-The project uses four selected classes from the TrashNet dataset. The original dataset also contains other classes, which are not part of this classifier.
+**This is image classification.** The current system does not perform object detection, instance segmentation, multi-object sorting, contamination detection, or physical control of a sorting machine.
 
-## Key Features
+## Dataset
 
-- Image upload with JPG, PNG, and WEBP support.
-- Camera capture and prediction.
-- Image-size validation (maximum 5 MB).
-- EfficientNet-B0-based image classification.
-- Prediction confidence display.
-- User feedback with thumbs-up and thumbs-down options.
-- Separate storage for correct and incorrect feedback.
-- CSV logging of submitted feedback.
+The project uses four classes selected from the six-class TrashNet collection.
 
-## Technology Stack
-
-- **Language:** Python
-- **Deep learning:** PyTorch, Torchvision
-- **Model architecture:** EfficientNet-B0
-- **Image processing:** Pillow
-- **Backend:** Flask
-- **Frontend:** HTML, CSS, JavaScript
-- **Training environment:** Google Colab
-- **Version control:** Git and GitHub
-
-## Model and Evaluation
-
-The model was trained using transfer learning with ImageNet-pretrained EfficientNet-B0 weights, followed by fine-tuning of later feature-extraction blocks.
-
-| Metric | Result |
+| Class | Images |
 |---|---:|
-| Test images | 299 |
-| Test accuracy | **90.30%** |
+| Glass | 501 |
+| Metal | 410 |
+| Paper | 594 |
+| Plastic | 482 |
+| **Total** | **1,987** |
 
-The reported test accuracy is from the held-out test split. User-submitted feedback images are stored separately and are not automatically added to the training or test dataset.
+Cardboard and trash were excluded from this four-class experiment. The dataset integrity check recorded 1,987 valid images and no corrupted images. The inspected images were 512 × 384 RGB.
 
-### Class-wise test results
+A stratified split with random seed 42 was used:
 
-| Class | Precision | Recall | F1-score |
-|---|---:|---:|---:|
-| Glass | 0.9189 | 0.8947 | 0.9067 |
-| Metal | 0.8382 | 0.9344 | 0.8837 |
-| Paper | 0.9444 | 0.9551 | 0.9497 |
-| Plastic | 0.8955 | 0.8219 | 0.8571 |
+| Split | Images | Share |
+|---|---:|---:|
+| Training | 1,390 | 70% |
+| Validation | 298 | 15% |
+| Test | 299 | 15% |
+| **Total** | **1,987** | **100%** |
 
-These results are from the current model evaluation. Performance may vary on images with different backgrounds, lighting, viewpoints, or multiple objects.
+The split manifests were checked for path overlap; no overlap was reported.
 
-## Repository Structure
+## Model and training
+
+- **Architecture:** EfficientNet-B0
+- **Initial weights:** ImageNet1K_V1
+- **Input:** 224 × 224 RGB image
+- **Classifier head:** Dropout (0.3) followed by Linear (1,280 → 4)
+- **Loss:** Cross-entropy
+- **Optimizer:** AdamW
+- **Training environment:** Google Colab with an NVIDIA Tesla T4
+
+Training was carried out in two stages:
+
+1. **Classifier training:** the feature extractor was frozen and the new classifier head was trained for 10 epochs. There were 5,124 trainable parameters. The highest recorded validation accuracy was 81.54%.
+2. **Fine-tuning:** the later feature blocks (features[6:]) and classifier were trained for 10 epochs, using learning rates of 0.00001 for the unfrozen feature blocks and 0.0001 for the classifier. The highest recorded validation accuracy was 86.91%. The checkpoint selected by the lowest validation loss occurred at epoch 10 (validation loss 0.4057; validation accuracy 84.90%).
+
+The best Phase 2 checkpoint was evaluated once on the held-out test split.
+
+## Evaluation
+
+The final test evaluation covered 299 images and achieved **90.30% accuracy (270/299 correct)**.
+
+| Class | Precision | Recall | F1-score | Support |
+|---|---:|---:|---:|---:|
+| Glass | 0.9189 | 0.8947 | 0.9067 | 76 |
+| Metal | 0.8382 | 0.9344 | 0.8837 | 61 |
+| Paper | 0.9444 | 0.9551 | 0.9497 | 89 |
+| Plastic | 0.8955 | 0.8219 | 0.8571 | 73 |
+| **Macro average** | **0.8993** | **0.9015** | **0.8993** | **299** |
+| **Weighted average** | **0.9043** | **0.9030** | **0.9027** | **299** |
+
+Paper had the strongest F1-score (0.9497). Plastic had the lowest recall (0.8219), and is an area for further improvement. Performance on real-world images may vary with lighting, backgrounds, camera viewpoints, occlusion, and mixed-material objects. The softmax confidence score is not presented as a calibrated probability of correctness.
+
+## Application features
+
+The local Flask application includes:
+
+- JPG, PNG, and WEBP image upload (5 MB limit)
+- Drag-and-drop upload, preview, and image removal
+- Browser camera capture and retake
+- Prediction result with class and confidence score
+- Optional correct/incorrect feedback submission
+
+In the **local Flask application**, submitted feedback images and metadata are stored in the local feedback directory and CSV log. Feedback is not automatically used to retrain the model.
+
+The **hosted Hugging Face Space** is a separate Gradio application. Its inference path uses the hosted model checkpoint; persistent cloud feedback storage is not claimed as an enabled feature.
+
+## Repository structure
 
 ```text
-CV_Project/
+Garbage-collection/
 ├── backend/
 │   ├── app.py
 │   └── model_loader.py
-├── dataset/
-├── evaluation/
-├── feedback/
-│   ├── correct/
-│   ├── incorrect/
-│   └── feedback_log.csv
 ├── frontend/
 │   ├── index.html
 │   └── static/
 │       ├── script.js
 │       └── style.css
-├── models/
-│   └── garbage_classifier_final.pth
 ├── notebooks/
-├── report/
-├── test_api.py
-├── requirements.txt
+│   └── 01_Dataset_Exploration.ipynb
+├── feedback/
+│   └── local feedback records and images
 ├── .gitignore
+├── .python-version
+├── requirements.txt
+├── test_api.py
 └── README.md
 ```
 
-The `lisajaanu/` directory is the local Python virtual environment and is not part of the source-code setup. Dataset files, trained model weights, and generated feedback images should be kept out of the Git repository unless there is a specific reason to publish them.
+The trained model weights and raw dataset are not stored in this source repository. The checkpoint is downloaded by the model loader from Hugging Face.
 
-## Setup and Installation
+## Run the local Flask application
 
 ### 1. Clone the repository
 
@@ -108,104 +128,86 @@ cd Garbage-collection
 
 ### 2. Create and activate a virtual environment
 
-Windows PowerShell:
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
+**macOS / Linux**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
 ### 3. Install dependencies
 
 ```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Add the trained model file
+The requirements file installs the CPU build of PyTorch and Torchvision. The first model load downloads the checkpoint from the Hugging Face model repository and may require an internet connection.
 
-The trained model weights are not included in this GitHub repository. Obtain the project model file separately and place it at this exact path:
+### 4. Start the application
 
-```text
-models/garbage_classifier_final.pth
-```
-
-The application requires this file to load the classifier.
-
-### 5. Run the application
-
-From the repository root, run:
+Run from the repository root:
 
 ```bash
 python -m backend.app
 ```
 
-Then open the local address printed by Flask in your browser (by default, `http://127.0.0.1:5000`).
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in a browser.
 
-## Using the Application
+### 5. Test the prediction API
 
-1. Open SORTED in your browser.
-2. Upload an image or switch to camera mode and capture an image.
-3. Select **Analyze image**.
-4. Review the predicted material and confidence score.
-5. Optionally submit feedback:
-   - Select **Correct** if the prediction is correct.
-   - Select **Incorrect**, choose the actual category, and submit.
-   - If no feedback is submitted, the analyzed image is not stored by the feedback feature.
+With the local server running, execute:
 
-## Feedback Storage
-
-Feedback is stored locally in the project directory:
-
-```text
-feedback/
-├── correct/
-│   ├── glass/
-│   ├── metal/
-│   ├── paper/
-│   └── plastic/
-├── incorrect/
-│   └── predicted_<class>/
-│       └── actual_<class>/
-└── feedback_log.csv
+```bash
+python test_api.py
 ```
 
-The CSV log records the feedback timestamp, feedback type, predicted class, actual class, confidence score, and saved image path.
+## Training notebook
 
-Feedback images are collected for review. They are **not automatically used to retrain the model**.
+The repository contains `notebooks/01_Dataset_Exploration.ipynb`. The notebook records the dataset exploration and the project training/evaluation workflow. It was developed in Google Colab and uses a Google Drive project directory; update the project and dataset paths to match the environment before running it.
 
-## Current Project Status
+The experiment uses the prepared TrashNet image folders and generates split manifests, training checkpoints/logs, evaluation metrics, and the exported `garbage_classifier_final.pth` checkpoint. Training and evaluation are not run by starting the Flask application.
 
-- [x] Dataset preparation and integrity checks
-- [x] Stratified train, validation, and test split
-- [x] EfficientNet-B0 transfer learning and fine-tuning
-- [x] Model evaluation
-- [x] Flask prediction API
-- [x] Web interface with image upload
-- [x] Camera capture
-- [x] Prediction feedback and CSV logging
-- [ ] Final documentation and project report
-- [ ] Final presentation
-- [ ] Cloud deployment
+## Deployment notes
 
-## Limitations
+- **Local:** Flask backend with the HTML/CSS/JavaScript frontend.
+- **Hosted:** Gradio application on Hugging Face Spaces with ZeroGPU inference.
+- **Model artifact:** hosted independently in the Hugging Face model repository.
+- **Render:** an earlier deployment attempt was not retained because prediction requests encountered worker timeouts/resource limits in the tested configuration.
 
-- The classifier predicts only the four supported categories.
-- Prediction quality can be affected by lighting, background clutter, camera angle, object size, and images containing multiple objects.
-- The confidence score represents the model's confidence in its predicted class; it is not a guarantee that the prediction is correct.
-- Feedback storage currently uses the local filesystem. A cloud deployment requires persistent storage to retain feedback images and logs across restarts or redeployments.
+The live Space is the hosted demonstration. Hosted availability and inference behaviour depend on the Space's current runtime state and resource availability.
 
-## Future Scope
+## Limitations and future work
 
-- Expand the number of supported waste categories.
-- Review and curate user feedback for possible future model improvement.
-- Improve robustness to real-world backgrounds and camera conditions.
-- Deploy the application with persistent storage.
-- Add model monitoring and feedback analytics.
+- Only four predefined material classes are supported.
+- One image and one principal item are classified at a time.
+- The TrashNet subset is relatively small and may not represent varied real-world conditions.
+- Plastic has lower recall than the other evaluated classes.
+- Confidence scores have not been calibrated.
+- Local feedback storage is filesystem-based; hosted persistent feedback storage is not enabled.
+- Future work includes broader datasets and classes, real-world image testing, further model comparisons, confidence calibration, improved error handling, and persistent feedback storage with appropriate privacy controls.
 
-## Acknowledgements
+## References
 
-The project uses the TrashNet waste-image dataset and the PyTorch/Torchvision implementation of EfficientNet-B0.
+1. Thung, G. and Yang, M. (2016). [TrashNet dataset repository](https://github.com/garythung/trashnet).
+2. Thung, G. and Yang, M. (2016). [Classification of Trash for Recyclability Status](https://cs229.stanford.edu/proj2016/report/ThungYang-ClassificationOfTrashForRecyclabilityStatus-report.pdf). Stanford University, CS229 project report.
+3. Tan, M. and Le, Q. V. (2019). [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://proceedings.mlr.press/v97/tan19a.html). Proceedings of ICML.
+4. [PyTorch documentation](https://pytorch.org/docs/).
+5. [Torchvision documentation](https://pytorch.org/vision/stable/).
+6. [Flask documentation](https://flask.palletsprojects.com/).
+7. [Gradio documentation](https://www.gradio.app/docs).
+8. [Hugging Face Spaces documentation](https://huggingface.co/docs/hub/spaces).
 
 ---
 
-**Project:** SORTED — Garbage Classification for Waste Management
+**Project:** SORTED — Garbage Classification for Waste Management  
+**Author:** Manish Kumar  
+**Department:** Computer Science and Engineering, NIT Mizoram  
+**Academic session:** 2026–2027
