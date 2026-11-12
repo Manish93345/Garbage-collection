@@ -169,11 +169,22 @@ With the local server running, execute:
 python test_api.py
 ```
 
-## Training notebook
+## Reproduce dataset preparation, training, and evaluation
 
-The repository contains `notebooks/01_Dataset_Exploration.ipynb`. The notebook records the dataset exploration and the project training/evaluation workflow. It was developed in Google Colab and uses a Google Drive project directory; update the project and dataset paths to match the environment before running it.
+The training and evaluation workflow is maintained in the notebook; standalone `train.py` and `evaluate.py` scripts are not currently included.
 
-The experiment uses the prepared TrashNet image folders and generates split manifests, training checkpoints/logs, evaluation metrics, and the exported `garbage_classifier_final.pth` checkpoint. Training and evaluation are not run by starting the Flask application.
+1. Download the [TrashNet dataset](https://github.com/garythung/trashnet).
+2. In Google Drive, create `MyDrive/Garbage_Classification/dataset/raw/`.
+3. Place the four selected class folders directly inside `raw/`: `glass/`, `metal/`, `paper/`, and `plastic/`. Do not include `cardboard/` or `trash/` for this four-class experiment.
+4. Open `notebooks/01_Dataset_Exploration.ipynb` in Google Colab and select a GPU runtime.
+5. Confirm that `PROJECT_DIR` and `DATASET_DIR` near the beginning of the notebook point to the Drive folders above.
+6. Run the notebook cells in order. The notebook prepares metadata and splits, trains the classifier in two phases, saves checkpoints and logs, evaluates the final Phase 2 checkpoint on the held-out test set, and exports `garbage_classifier_final.pth`.
+
+**Training procedure:** run the Phase 1 classifier-training and Phase 2 fine-tuning cells in the notebook, in order.
+
+**Evaluation procedure:** after Phase 2 training completes, run the final model-loading and test-evaluation cells in the notebook. These generate the test metrics and confusion matrix.
+
+The notebook uses Google Colab/Google Drive paths and must be adjusted before running elsewhere. The recorded experiment used 10 epochs for the frozen-classifier phase and 10 epochs for fine-tuning. The training workflow is not launched by the Flask application.
 
 ## Deployment notes
 
